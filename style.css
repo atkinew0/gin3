@@ -1,0 +1,39 @@
+html{
+    width:100%;
+}
+
+body {
+    background-color:blue;
+    color:yellow;
+    width:100%;
+    font-size:48px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight:bold;
+    
+}
+
+#tag, #weight, #bales, #time {
+    background-color:white;
+    display: inline-block;
+    margin: 25px;
+    border:yellow solid 8px;
+    color:black;
+    font-weight: normal;
+
+}
+
+#tag{
+    width:400px;
+}
+
+#time{
+    width:200px;
+}
+
+#weight{
+    width:200px;;
+}
+
+#bales{
+    width: 50px;
+}

@@ -2,13 +2,30 @@ const file = require('fs')
 const cors = require('cors')
 const SerialPort = require('serialport');
 const express = require('express')
+const iohook = require('iohook');
 const app = express()
 const Readline = require('@serialport/parser-readline')
 const port = 3000
 const parser = new Readline({delimiter: '\r'});
-const { Transform } = require('stream')
+const stream = require('stream')
 
 const config = require('./config.json')
+
+
+const scanMap = {
+    2:'1',
+    3:'2',
+    4:'3',
+    5:'4',
+    6:'5',
+    7:'6',
+    8:'7',
+    9:'8',
+    10:'9',
+    11:'0',
+    28:'\n'
+
+}
 
 console.log("server read config file: ",config);
 
@@ -20,17 +37,34 @@ process.stdin.setEncoding('utf8');
 
 const readline = require('readline');
 
+let readable = new stream.Readable({
+    read() {}
+});
+
+iohook.on('keydown', key =>{
+    
+    readable.push(scanMap[key.keycode]);
+});
+
+iohook.start();
+
 const rl = readline.createInterface({
-    input: process.stdin,
+    input: readable,
     output: process.stdout
   });
 
-  rl.on('line', (input) => {280000327271
+  rl.on('line', (input) => {
 
     console.log(`Received: ${input}`);
-    if(input === tag){
-        console.log("Error tag rescan");
+
+    if(input.length != 12){
+        console.log("Not valid PBI tag");
+        return;
     }
+
+    // if(input === tag){
+    //     console.log("Error tag rescan");
+    // }
     tag = input;
 
     // if(weight != 0){
@@ -69,7 +103,7 @@ parser.on('data', data => {
     console.log("Got weight and tag now",tag,weight)
     let d = new Date();
 
-    stream.write(`${d.getTime()},${tag},${weight}`);
+    outFile.write(`${d.getTime()},${tag},${weight}\n`);
 
 });
 
@@ -90,8 +124,9 @@ app.get('/gin', (req, res) => {
 app.get('/latest/:cutoff', (req, res) => {
 
     let cutoff = parseInt(req.params.cutoff);
+    console.log("Hit latest cutoff route");
 
-    file.readFile('mock_bales.txt', 'utf8', (err, data) => {
+    file.readFile('bales.txt', 'utf8', (err, data) => {
 
         if (err) console.log("Read error:", err);
 
@@ -108,6 +143,8 @@ app.get('/latest/:cutoff', (req, res) => {
 
             if(item[0] > cutoff){
 
+                console.log("In filter comparing", item[0], cutoff)
+
                 bales_list.push({time: item[0], tag: item[1], weight: item[2]});
             }
         }
@@ -121,5 +158,7 @@ app.get('/latest/:cutoff', (req, res) => {
 
 app.listen(port, () => console.log(`Example app listening at http ://localhost:${port}`));
 
-const stream = file.createWriteStream("bales.txt", {flags:'a'});
+const outFile = file.createWriteStream("bales.txt", {flags:'a'},err =>{
+    console.log("Create write err",err)
+} );
 
