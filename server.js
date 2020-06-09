@@ -2,7 +2,6 @@ const file = require('fs')
 const cors = require('cors')
 const SerialPort = require('serialport');
 const express = require('express')
-const iohook = require('iohook');
 const app = express()
 const Readline = require('@serialport/parser-readline')
 const port = 3000
@@ -37,19 +36,12 @@ process.stdin.setEncoding('utf8');
 
 const readline = require('readline');
 
-let readable = new stream.Readable({
-    read() {}
-});
 
-iohook.on('keydown', key =>{
-    
-    readable.push(scanMap[key.keycode]);
-});
 
-iohook.start();
+
 
 const rl = readline.createInterface({
-    input: readable,
+    input: process.stdin,
     output: process.stdout
   });
 
