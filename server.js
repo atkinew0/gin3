@@ -38,7 +38,15 @@ const readline = require('readline');
 
 
 
+function writeToFile(tagOut, weightOut){
 
+    console.log('Got tag and weigt, writing to file',tag,weight);
+
+    let d = new Date();
+
+    outFile.write(`${d.getTime()},${tagOut},${weightOut}\n`);
+
+}
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -54,20 +62,14 @@ const rl = readline.createInterface({
         return;
     }
 
-    // if(input === tag){
-    //     console.log("Error tag rescan");
-    // }
     tag = input;
 
-    // if(weight != 0){
-    //     console.log("Tag and weight gotten now ",tag,weight);
-    //     //to do - write to file here
-    //     weight = 0;
+    if(weight != 0){
+        writeToFile(tag, weight);
+        tag = 0;
+        weight = 0;
+    }
 
-    // }else{
-    //     console.log("Err scanned tag but no weight");
-    // }
-    serialPort.write("W\n");
 
   });
 
@@ -90,12 +92,21 @@ serialPort.pipe(parser);
 
 parser.on('data', data => {
 
-    weight = data.split(" ")[1];
+    let line = data.toString("utf8").trim().split(/\s+/).filter(elem => !elem.match(/(\s+)/));
 
-    console.log("Got weight and tag now",tag,weight)
-    let d = new Date();
+    console.log(data,"filtered to",line)
 
-    outFile.write(`${d.getTime()},${tag},${weight}\n`);
+    weight = line[1];
+
+    console.log("got weight", weight);
+
+    if( tag != 0){
+        writeToFile(tag, weight);
+        tag = 0;
+        weight = 0;
+    }
+    
+
 
 });
 
@@ -120,7 +131,11 @@ app.get('/latest/:cutoff', (req, res) => {
 
     file.readFile('bales.txt', 'utf8', (err, data) => {
 
-        if (err) console.log("Read error:", err);
+        if (err){
+            console.log("Read error:", err)
+            return;
+            
+        } 
 
 
         let lines = data.trim().split("\n");

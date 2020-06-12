@@ -23,11 +23,11 @@ body {
 }
 
 #tag{
-    width:400px;
+    width:700px;
 }
 
 #time{
-    width:200px;
+    width:400px;
 }
 
 #weight{
@@ -35,5 +35,5 @@ body {
 }
 
 #bales{
-    width: 50px;
+    width: 100px;
 }
