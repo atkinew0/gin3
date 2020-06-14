@@ -21,7 +21,7 @@ window.onload = () => {
 
        console.log("Got response ",response)
 
-       updateScreen(response.bales.list);
+       updateScreen(response);
 
 
 
@@ -36,7 +36,7 @@ window.onload = () => {
 
         console.log("senditerval time now at", cutoff.toString())
 
-        xhr.open('GET', `${HOST}/latest/${cutoff}`);
+        xhr.open('GET', `${HOST}/current`);
         xhr.send();
     }, 5000);
 
@@ -44,32 +44,21 @@ window.onload = () => {
 }
 
 
-function updateScreen(bales){
+function updateScreen(current){
 
-    let lastBale = undefined;
-
-    console.log("In update bales are",bales)
-
-    bales.forEach(bale => {
-
-        if(lastBale === undefined || bale.time > lastBale.time){
-            lastBale = bale;
-        }
-
-    })
-
-    lastBale = lastBale? lastBale : {time:0, tag:0, weight:0};
-
-    console.log("Lastbae is",lastBale)
+    console.log("In update current is", current)
     
     let tag = document.querySelector("#tag");
-    tag.innerHTML = lastBale.tag;
+    tag.innerHTML = current.tag;
 
     let weight = document.querySelector("#weight");
-    weight.innerHTML = lastBale.weight;
+    weight.innerHTML = current.weight;
+
+    let bales = document.querySelector("#bales");
+    bales.innerHTML = current.dayTotal;
 
     let time = document.querySelector("#time");
-    let d = new Date(parseInt(lastBale.time));
+    let d = new Date();
 
     let hour = d.getHours()%12;
     hour = hour === 0 ? 12 : hour;

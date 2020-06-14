@@ -6,30 +6,18 @@ const app = express()
 const Readline = require('@serialport/parser-readline')
 const port = 3000
 const parser = new Readline({delimiter: '\r'});
+const parser2 = new Readline({delimiter: '\r'});
 const stream = require('stream')
 
 const config = require('./config.json')
 
 
-const scanMap = {
-    2:'1',
-    3:'2',
-    4:'3',
-    5:'4',
-    6:'5',
-    7:'6',
-    8:'7',
-    9:'8',
-    10:'9',
-    11:'0',
-    28:'\n'
-
-}
 
 console.log("server read config file: ",config);
 
 let weight = 0;
 let tag = 0;
+let dayTotal = 0;
 
 
 process.stdin.setEncoding('utf8');
@@ -46,49 +34,35 @@ function writeToFile(tagOut, weightOut){
 
     outFile.write(`${d.getTime()},${tagOut},${weightOut}\n`);
 
+    dayTotal++;
+
 }
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  rl.on('line', (input) => {
-
-    console.log(`Received: ${input}`);
-
-    if(input.length != 12){
-        console.log("Not valid PBI tag");
-        return;
-    }
-
-    tag = input;
-
-    if(weight != 0){
-        writeToFile(tag, weight);
-        tag = 0;
-        weight = 0;
-    }
-
-
-  });
-
 
 
 
 app.use(cors())
 
-const serialPort = new SerialPort('/dev/ttyUSB0', { baudRate: 9600 }, function (err) {
+const serialIndicator = new SerialPort('/dev/ttyUSB0', { baudRate: 9600 }, function (err) {
 
     if (err) {
         return console.log("Error : " + err);
     }else{
-        console.log("Opened serial port at 9600");
+        console.log("Opened indicator serial port at 9600");
     }
-}
-)
+})
 
-serialPort.pipe(parser);
+const serialScanner = new SerialPort('/dev/ttyACM0', { baudRate: 9600 }, function (err) {
+
+    if (err) {
+        return console.log("Error : " + err);
+    }else{
+        console.log("Opened barcode scanner serial port at 9600");
+    }
+})
+
+serialIndicator.pipe(parser);
+
+serialScanner.pipe(parser2);
 
 parser.on('data', data => {
 
@@ -110,9 +84,29 @@ parser.on('data', data => {
 
 });
 
-// serialPort.on('readable', function () {
-//     console.log('Data:', serialPort.read().toString())
-//   })
+parser2.on('data', data => {
+
+    data = data.trim()
+
+    console.log("Got scan data", data," length of data is ", data.length)
+
+    if(data.length != 12){
+        console.log("Not valid PBI tag");
+        return;
+    }
+
+    tag = data;
+
+    if(weight != 0){
+        writeToFile(tag, weight);
+        tag = 0;
+        weight = 0;
+    }
+    
+
+
+});
+
 
 app.get('/gin', (req, res) => {
 
@@ -162,6 +156,14 @@ app.get('/latest/:cutoff', (req, res) => {
     });
 
 });
+
+app.get("/current", (req, res) => {
+
+    let current = {tag, weight, dayTotal};
+
+    res.send(current);
+
+})
 
 app.listen(port, () => console.log(`Example app listening at http ://localhost:${port}`));
 
