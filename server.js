@@ -42,7 +42,7 @@ function writeToFile(tagOut, weightOut){
 
 app.use(cors())
 
-const serialIndicator = new SerialPort('/dev/ttyUSB0', { baudRate: 9600 }, function (err) {
+const serialIndicator = new SerialPort('/dev/ttyUSB1', { baudRate: 9600 }, function (err) {
 
     if (err) {
         return console.log("Error : " + err);
@@ -123,7 +123,7 @@ app.get('/latest/:cutoff', (req, res) => {
     let cutoff = parseInt(req.params.cutoff);
     console.log("Hit latest cutoff route");
 
-    file.readFile('bales.txt', 'utf8', (err, data) => {
+    file.readFile('/mnt/usb/bales.txt', 'utf8', (err, data) => {
 
         if (err){
             console.log("Read error:", err)
@@ -167,7 +167,7 @@ app.get("/current", (req, res) => {
 
 app.listen(port, () => console.log(`Example app listening at http ://localhost:${port}`));
 
-const outFile = file.createWriteStream("bales.txt", {flags:'a'},err =>{
+const outFile = file.createWriteStream("/mnt/usb/bales.txt", {flags:'a'},err =>{
     console.log("Create write err",err)
 } );
 

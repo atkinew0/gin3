@@ -12,7 +12,13 @@ body {
     
 }
 
-#tag, #weight, #bales, #time {
+#last{
+    
+    width:80%;
+    
+}
+
+#tag, #weight, #bales, #time, #last {
     background-color:white;
     display: inline-block;
     margin: 25px;

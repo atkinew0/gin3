@@ -7,6 +7,7 @@ window.onload = () => {
 
 
     let xhr = new XMLHttpRequest();
+    let xhr2 = new XMLHttpRequest();
 
     xhr.onload = () => {
 
@@ -23,21 +24,38 @@ window.onload = () => {
 
        updateScreen(response);
 
+    }
 
+    xhr2.onload = () => {
+        if (xhr2.status >= 200 && xhr2.status < 300) {
+            // This will run when the request is successful
+            
+            response = JSON.parse(xhr2.response);
+        } else {
+            // This will run when it's not
+            console.log('The request failed!');
+        }
 
+       console.log("Got response ",response)
 
+       updateLast(response.bales.list);
     }
 
 
     setInterval(() => {
 
         let d = new Date()
-        let cutoff = d.getTime() - (1000 * 60 * 60);        //get bales from last 1 hour
+        let cutoff = d.getTime() - (1000 * 60 * 60 * 12);        //get bales from last 12 hour
 
         console.log("senditerval time now at", cutoff.toString())
 
         xhr.open('GET', `${HOST}/current`);
         xhr.send();
+
+
+        xhr2.open('GET', `${HOST}/latest/${cutoff}`);
+        xhr2.send();
+
     }, 5000);
 
 
@@ -69,5 +87,26 @@ function updateScreen(current){
 
 
     time.innerHTML = timeString;
+
+}
+
+function updateLast(array){
+
+    let lastTime = -Infinity;
+    let bale;
+
+    array.forEach(elem => {
+        if(elem.time > lastTime){
+            lastTime = elem.time;
+            bale = elem;
+        }
+    });
+
+    console.log("In updateLast last bale is", bale)
+
+    let last = document.querySelector("#last");
+    last.innerHTML = `${bale.tag} ${bale.weight}`
+
+
 
 }
